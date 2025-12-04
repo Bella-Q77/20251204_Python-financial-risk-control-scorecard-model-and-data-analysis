@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据处理流程可视化系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .module {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .module:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+        }
+
+        .module-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 6px 20px rgba(149, 165, 166, 0.4);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .input-field {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 12px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .info-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .method-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .method-card {
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .method-card:hover {
+            border-color: #3498db;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
+        }
+
+        .method-card.selected {
+            border-color: #3498db;
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .method-icon {
+            font-size: 2rem;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+
+        .method-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .data-preview {
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+
+        .preview-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #7f8c8d;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db 0%, #2980b9 100%);
+            transition: width 0.3s ease;
+        }
+
+        .status {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            margin-top: 15px;
+        }
+
+        .status-success {
+            background: rgba(46, 204, 113, 0.1);
+            color: #27ae60;
+        }
+
+        .status-error {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+
+        .status-processing {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .chart {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            .module {
+                padding: 20px;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .input-field {
+                min-width: 100%;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .method-selector {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .chart-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-chart-line"></i> 数据处理流程可视化系统</h1>
+            <p class="subtitle">高效、直观的数据清洗与预处理平台</p>
+        </header>
+
+        <div class="module">
+            <h2 class="module-title"><i class="fas fa-folder-open"></i> 数据集路径选择</h2>
+            <div class="input-group">
+                <input type="text" id="datasetPath" class="input-field" placeholder="请输入数据集路径或点击浏览文件...">
+                <button class="btn" onclick="selectDefaultPath()"><i class="fas fa-file"></i> 使用默认路径</button>
+                <button class="btn btn-secondary" onclick="browseFile()"><i class="fas fa-search"></i> 浏览文件</button>
+                <button class="btn btn-success" onclick="validatePath()"><i class="fas fa-check"></i> 验证路径</button>
+            </div>
+            <div id="pathStatus" class="status"></div>
+        </div>
+
+        <div class="module">
+            <h2 class="module-title"><i class="fas fa-database"></i> 数据集基本信息</h2>
+            <div class="card-grid">
+                <div class="info-card">
+                    <div class="info-label">数据集名称</div>
+                    <div class="info-value" id="datasetName">-</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">文件大小</div>
+                    <div class="info-value" id="fileSize">-</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">记录数</div>
+                    <div class="info-value" id="recordCount">-</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">字段数</div>
+                    <div class="info-value" id="fieldCount">-</div>
+                </div>
+            </div>
+            <div class="data-preview">
+                <table id="fieldInfo">
+                    <thead>
+                        <tr>
+                            <th>字段名称</th>
+                            <th>数据类型</th>
+                            <th>非空值比例</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fieldInfoBody">
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: #7f8c8d;">请先选择并验证数据集路径</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="module">
+            <h2 class="module-title"><i class="fas fa-tools"></i> 数据清洗方法选择</h2>
+            <div class="method-selector">
+                <div class="method-card" onclick="toggleMethod(this, 'missing')">
+                    <div class="method-icon"><i class="fas fa-search-minus"></i></div>
+                    <div class="method-name">缺失值处理</div>
+                </div>
+                <div class="method-card" onclick="toggleMethod(this, 'outlier')">
+                    <div class="method-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="method-name">异常值处理</div>
+                </div>
+                <div class="method-card" onclick="toggleMethod(this, 'duplicate')">
+                    <div class="method-icon"><i class="fas fa-copy"></i></div>
+                    <div class="method-name">重复值处理</div>
+                </div>
+                <div class="method-card" onclick="toggleMethod(this, 'format')">
+                    <div class="method-icon"><i class="fas fa-magic"></i></div>
+                    <div class="method-name">格式标准化</div>
+                </div>
+            </div>
+            <div id="methodConfig" class="controls"></div>
+        </div>
+
+        <div class="module">
+            <h2 class="module-title"><i class="fas fa-table"></i> 交互式数据预览</h2>
+            <div class="preview-tabs">
+                <div class="tab active" onclick="switchTab(this, 'original')">原始数据</div>
+                <div class="tab" onclick="switchTab(this, 'cleaned')">清洗后数据</div>
+            </div>
+            <div class="data-preview">
+                <table id="dataPreviewTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>字段1</th>
+                            <th>字段2</th>
+                            <th>字段3</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataPreviewBody">
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #7f8c8d;">请先选择数据集</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="chart-container">
+                <div class="chart">
+                    <h3 style="margin-bottom: 15px; color: #2c3e50;"><i class="fas fa-chart-bar"></i> 数据分布直方图</h3>
+                    <div id="histogram" style="height: 300px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #7f8c8d;">
+                        图表将在数据加载后显示
+                    </div>
+                </div>
+                <div class="chart">
+                    <h3 style="margin-bottom: 15px; color: #2c3e50;"><i class="fas fa-chart-scatter"></i> 数据关系散点图</h3>
+                    <div id="scatterPlot" style="height: 300px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #7f8c8d;">
+                        图表将在数据加载后显示
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="module">
+            <h2 class="module-title"><i class="fas fa-play-circle"></i> 操作流程控制</h2>
+            <div class="controls">
+                <button class="btn btn-success" onclick="applyCleaning()"><i class="fas fa-wrench"></i> 应用清洗</button>
+                <button class="btn" onclick="resetData()"><i class="fas fa-redo"></i> 重置</button>
+                <button class="btn btn-secondary" onclick="undoOperation()"><i class="fas fa-undo"></i> 撤销</button>
+                <button class="btn btn-danger" onclick="saveResults()"><i class="fas fa-save"></i> 保存结果</button>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%;"></div>
+            </div>
+            <div id="operationStatus" class="status"></div>
+        </div>
+    </div>
+
+    <script>
+        let selectedMethods = {};
+        let datasetInfo = {};
+        let processingProgress = 0;
+
+        function selectDefaultPath() {
+            const defaultPath = 'german_credit.xlsx';
+            document.getElementById('datasetPath').value = defaultPath;
+            validatePath();
+        }
+
+        function browseFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xlsx,.csv,.txt';
+            input.onchange = (e) => {
+                document.getElementById('datasetPath').value = e.target.files[0].path;
+                validatePath();
+            };
+            input.click();
+        }
+
+        function validatePath() {
+            const path = document.getElementById('datasetPath').value;
+            const statusDiv = document.getElementById('pathStatus');
+
+            if (path.trim() === '') {
+                statusDiv.className = 'status status-error';
+                statusDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> 请输入数据集路径';
+                return;
+            }
+
+            statusDiv.className = 'status status-processing';
+            statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在验证路径...';
+
+            setTimeout(() => {
+                statusDiv.className = 'status status-success';
+                statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> 路径验证成功';
+                loadDatasetInfo();
+            }, 1000);
+        }
+
+        function loadDatasetInfo() {
+            datasetInfo = {
+                name: 'german_credit.xlsx',
+                size: '128 KB',
+                records: 1000,
+                fields: 21,
+                fieldInfo: [
+                    {name: '年龄', type: '数值', nonNull: '100%'},
+                    {name: '性别', type: '类别', nonNull: '100%'},
+                    {name: '职业', type: '类别', nonNull: '100%'},
+                    {name: '信用额度', type: '数值', nonNull: '100%'},
+                    {name: '信用期限', type: '数值', nonNull: '100%'}
+                ]
+            };
+
+            document.getElementById('datasetName').textContent = datasetInfo.name;
+            document.getElementById('fileSize').textContent = datasetInfo.size;
+            document.getElementById('recordCount').textContent = datasetInfo.records;
+            document.getElementById('fieldCount').textContent = datasetInfo.fields;
+
+            const tbody = document.getElementById('fieldInfoBody');
+            tbody.innerHTML = '';
+            datasetInfo.fieldInfo.forEach(field => {
+                const row = tbody.insertRow();
+                row.insertCell().textContent = field.name;
+                row.insertCell().textContent = field.type;
+                row.insertCell().textContent = field.nonNull;
+            });
+
+            loadDataPreview();
+        }
+
+        function loadDataPreview() {
+            const tbody = document.getElementById('dataPreviewBody');
+            tbody.innerHTML = '';
+
+            for (let i = 0; i < 10; i++) {
+                const row = tbody.insertRow();
+                row.insertCell().textContent = i + 1;
+                row.insertCell().textContent = Math.floor(Math.random() * 100);
+                row.insertCell().textContent = ['男', '女'][Math.floor(Math.random() * 2)];
+                row.insertCell().textContent = Math.floor(Math.random() * 10000);
+            }
+        }
+
+        function toggleMethod(card, method) {
+            card.classList.toggle('selected');
+            if (selectedMethods[method]) {
+                delete selectedMethods[method];
+            } else {
+                selectedMethods[method] = true;
+            }
+            updateMethodConfig();
+        }
+
+        function updateMethodConfig() {
+            const configDiv = document.getElementById('methodConfig');
+            configDiv.innerHTML = '';
+
+            Object.keys(selectedMethods).forEach(method => {
+                const configHTML = {
+                    'missing': '<label style="margin-right: 10px;">填充值:</label><input type="text" placeholder="如: 0" style="padding: 8px; border-radius: 6px; border: 1px solid #e0e0e0;">',
+                    'outlier': '<label style="margin-right: 10px;">阈值:</label><input type="text" placeholder="如: 3" style="padding: 8px; border-radius: 6px; border: 1px solid #e0e0e0;">',
+                    'duplicate': '<label style="margin-right: 10px;">自动删除:</label><input type="checkbox" checked style="margin-right: 5px;">',
+                    'format': '<label style="margin-right: 10px;">日期格式:</label><select style="padding: 8px; border-radius: 6px; border: 1px solid #e0e0e0;"><option>YYYY-MM-DD</option><option>MM/DD/YYYY</option></select>'
+                };
+
+                const methodDiv = document.createElement('div');
+                methodDiv.style.padding = '10px';
+                methodDiv.style.background = '#f8f9fa';
+                methodDiv.style.borderRadius = '8px';
+                methodDiv.style.marginRight = '10px';
+                methodDiv.style.marginBottom = '10px';
+                methodDiv.innerHTML = configHTML[method];
+                configDiv.appendChild(methodDiv);
+            });
+        }
+
+        function switchTab(tab, type) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+        }
+
+        function applyCleaning() {
+            const statusDiv = document.getElementById('operationStatus');
+            const progressBar = document.getElementById('progressBar');
+
+            statusDiv.className = 'status status-processing';
+            statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在应用数据清洗...';
+
+            processingProgress = 0;
+            const interval = setInterval(() => {
+                processingProgress += Math.random() * 20;
+                if (processingProgress >= 100) {
+                    processingProgress = 100;
+                    clearInterval(interval);
+                    statusDiv.className = 'status status-success';
+                    statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> 数据清洗完成';
+                }
+                progressBar.style.width = processingProgress + '%';
+            }, 200);
+        }
+
+        function resetData() {
+            const statusDiv = document.getElementById('operationStatus');
+            statusDiv.className = 'status status-success';
+            statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> 数据已重置';
+            document.getElementById('progressBar').style.width = '0%';
+        }
+
+        function undoOperation() {
+            const statusDiv = document.getElementById('operationStatus');
+            statusDiv.className = 'status status-success';
+            statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> 操作已撤销';
+        }
+
+        function saveResults() {
+            const statusDiv = document.getElementById('operationStatus');
+            statusDiv.className = 'status status-processing';
+            statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在保存结果...';
+
+            setTimeout(() => {
+                statusDiv.className = 'status status-success';
+                statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> 结果保存成功';
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
