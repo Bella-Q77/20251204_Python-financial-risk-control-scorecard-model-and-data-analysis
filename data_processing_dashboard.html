@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据处理流程可视化与交互平台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #6366f1;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success-color);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background: var(--surface);
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4f46e5;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .method-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .method-card {
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .method-card:hover {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .method-card.selected {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .method-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .method-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .metadata-item {
+            background: var(--background);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metadata-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metadata-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--surface);
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        th {
+            background: var(--background);
+            font-weight: 600;
+            color: var(--text-primary);
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            background: var(--surface);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .pagination button.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .progress-container {
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.3s;
+            border-radius: 4px;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        .chart-wrapper {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filter-input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: var(--success-color);
+        }
+
+        .toast.error {
+            background: var(--danger-color);
+        }
+
+        .toast.warning {
+            background: var(--warning-color);
+        }
+
+        .toast.info {
+            background: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            .button-group {
+                width: 100%;
+            }
+
+            .btn {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1><i class="fas fa-database"></i>数据处理流程可视化与交互平台</h1>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>系统就绪</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 数据集路径选择模块 -->
+        <div class="card full-width">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-folder-open"></i>数据集路径选择</h2>
+            </div>
+            <div class="form-group">
+                <label for="datasetPath">数据集路径</label>
+                <input type="text" id="datasetPath" placeholder="请输入数据集路径或上传文件" value="20251204_Python-financial-risk-control-scorecard-model-and-data-analysis/german_credit.xlsx">
+            </div>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="selectDefaultPath()"><i class="fas fa-home"></i>使用默认路径</button>
+                <button class="btn btn-secondary" onclick="browseFile()"><i class="fas fa-search"></i>浏览文件</button>
+                <button class="btn btn-success" onclick="validatePath()"><i class="fas fa-check"></i>验证路径</button>
+            </div>
+        </div>
+
+        <!-- 数据集基本信息展示区域 -->
+        <div class="card full-width">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-info-circle"></i>数据集基本信息</h2>
+                <button class="btn btn-primary" onclick="refreshMetadata()"><i class="fas fa-sync-alt"></i>刷新</button>
+            </div>
+            <div class="metadata-grid">
+                <div class="metadata-item">
+                    <div class="metadata-label">数据集名称</div>
+                    <div class="metadata-value" id="datasetName">-</div>
+                </div>
+                <div class="metadata-item">
+                    <div class="metadata-label">文件大小</div>
+                    <div class="metadata-value" id="fileSize">-</div>
+                </div>
+                <div class="metadata-item">
+                    <div class="metadata-label">记录数</div>
+                    <div class="metadata-value" id="recordCount">-</div>
+                </div>
+                <div class="metadata-item">
+                    <div class="metadata-label">字段数</div>
+                    <div class="metadata-value" id="fieldCount">-</div>
+                </div>
+                <div class="metadata-item">
+                    <div class="metadata-label">格式</div>
+                    <div class="metadata-value" id="fileFormat">-</div>
+                </div>
+                <div class="metadata-item">
+                    <div class="metadata-label">缺失值比例</div>
+                    <div class="metadata-value" id="missingRatio">-</div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 24px; margin-bottom: 16px; font-size: 16px; font-weight: 600;">字段信息</h3>
+            <div class="table-container">
+                <table id="fieldsTable">
+                    <thead>
+                        <tr>
+                            <th>字段名称</th>
+                            <th>类型</th>
+                            <th>非空值</th>
+                            <th>非空值比例</th>
+                            <th>最小值</th>
+                            <th>最大值</th>
+                            <th>平均值</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fieldsTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: var(--text-secondary);">请先验证数据集路径</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 数据清洗方法选择组件 -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-filter"></i>数据清洗方法</h2>
+            </div>
+
+            <div class="method-grid">
+                <div class="method-card" onclick="toggleMethod('missing')">
+                    <div class="method-header">
+                        <div class="method-title"><i class="fas fa-exclamation-triangle"></i>缺失值处理</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="missingCheckbox">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>处理方式</label>
+                        <select id="missingMethod">
+                            <option value="mean">均值填充</option>
+                            <option value="median">中位数填充</option>
+                            <option value="mode">众数填充</option>
+                            <option value="knn">KNN填充</option>
+                            <option value="drop">删除记录</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>填充值（可选）</label>
+                        <input type="text" id="missingValue" placeholder="如: 0, 'unknown'">
+                    </div>
+                </div>
+
+                <div class="method-card" onclick="toggleMethod('outlier')">
+                    <div class="method-header">
+                        <div class="method-title"><i class="fas fa-chart-scatter"></i>异常值处理</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="outlierCheckbox">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>检测方法</label>
+                        <select id="outlierMethod">
+                            <option value="iqr">IQR方法</option>
+                            <option value="zscore">Z-score方法</option>
+                            <option value="isolation">孤立森林</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>阈值</label>
+                        <input type="text" id="outlierThreshold" placeholder="如: 1.5, 3" value="1.5">
+                    </div>
+                </div>
+
+                <div class="method-card" onclick="toggleMethod('duplicate')">
+                    <div class="method-header">
+                        <div class="method-title"><i class="fas fa-copy"></i>重复值处理</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="duplicateCheckbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>处理方式</label>
+                        <select id="duplicateMethod">
+                            <option value="drop">删除重复</option>
+                            <option value="keep_first">保留第一条</option>
+                            <option value="keep_last">保留最后一条</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="method-card" onclick="toggleMethod('normalize')">
+                    <div class="method-header">
+                        <div class="method-title"><i class="fas fa-chart-line"></i>数据标准化</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="normalizeCheckbox">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>标准化方法</label>
+                        <select id="normalizeMethod">
+                            <option value="minmax">Min-Max标准化</option>
+                            <option value="standard">Z-score标准化</option>
+                            <option value="robust">Robust标准化</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作流程控制 -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-play-circle"></i>操作控制</h2>
+            </div>
+
+            <div class="button-group" style="margin-bottom: 20px;">
+                <button class="btn btn-success" onclick="applyCleaning()" style="flex: 1;"><i class="fas fa-magic"></i>应用清洗</button>
+                <button class="btn btn-warning" onclick="resetData()" style="flex: 1;"><i class="fas fa-undo"></i>重置</button>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="saveResults()" style="flex: 1;"><i class="fas fa-save"></i>保存结果</button>
+                <button class="btn btn-secondary" onclick="exportReport()" style="flex: 1;"><i class="fas fa-file-export"></i>导出报告</button>
+            </div>
+
+            <div class="progress-container" style="margin-top: 20px;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+                <div class="progress-text" id="progressText">就绪</div>
+            </div>
+
+            <div class="button-group" style="margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="undoOperation()" disabled><i class="fas fa-arrow-left"></i>撤销</button>
+                <button class="btn btn-secondary" onclick="redoOperation()" disabled><i class="fas fa-arrow-right"></i>重做</button>
+            </div>
+        </div>
+
+        <!-- 交互式数据预览功能 -->
+        <div class="card full-width">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-table"></i>数据预览</h2>
+                <div class="filter-controls">
+                    <input type="text" class="filter-input" placeholder="筛选数据..." oninput="filterData()">
+                    <select onchange="sortData()">
+                        <option value="">排序方式</option>
+                        <option value="asc">升序</option>
+                        <option value="desc">降序</option>
+                    </select>
+                    <select onchange="changeView()">
+                        <option value="original">原始数据</option>
+                        <option value="cleaned">清洗后数据</option>
+                        <option value="comparison">对比视图</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="dataTable">
+                    <thead>
+                        <tr id="dataTableHeader">
+                            <th>ID</th>
+                            <th>字段1</th>
+                            <th>字段2</th>
+                            <th>字段3</th>
+                            <th>字段4</th>
+                            <th>字段5</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-secondary);">请先验证数据集路径并应用清洗</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" id="pagination">
+                <button onclick="previousPage()" disabled>上一页</button>
+                <button class="active">1</button>
+                <button onclick="nextPage()">下一页</button>
+            </div>
+        </div>
+
+        <!-- 数据可视化图表 -->
+        <div class="card full-width">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-chart-bar"></i>数据可视化</h2>
+            </div>
+            <div class="chart-container">
+                <div class="chart-wrapper">
+                    <h3 style="margin-bottom: 16px; font-size: 14px; font-weight: 600; color: var(--text-secondary);">数据分布直方图</h3>
+                    <canvas id="histogramChart"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <h3 style="margin-bottom: 16px; font-size: 14px; font-weight: 600; color: var(--text-secondary);">缺失值分布</h3>
+                    <canvas id="missingValuesChart"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <h3 style="margin-bottom: 16px; font-size: 14px; font-weight: 600; color: var(--text-secondary);">数据质量对比</h3>
+                    <canvas id="qualityComparisonChart"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <h3 style="margin-bottom: 16px; font-size: 14px; font-weight: 600; color: var(--text-secondary);">字段相关性</h3>
+                    <canvas id="correlationChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // 全局变量
+        let currentPage = 1;
+        let totalPages = 1;
+        let currentView = 'original';
+        let originalData = [];
+        let cleanedData = [];
+        let operationHistory = [];
+        let historyIndex = -1;
+        let isProcessing = false;
+
+        // 模拟数据
+        const mockFields = [
+            { name: 'age', type: 'numeric', nonNull: 980, nonNullRatio: '98.0%', min: 18, max: 75, mean: 35.5 },
+            { name: 'income', type: 'numeric', nonNull: 990, nonNullRatio: '99.0%', min: 1000, max: 10000, mean: 3500.5 },
+            { name: 'credit_score', type: 'numeric', nonNull: 975, nonNullRatio: '97.5%', min: 300, max: 850, mean: 620.3 },
+            { name: 'loan_amount', type: 'numeric', nonNull: 1000, nonNullRatio: '100.0%', min: 500, max: 50000, mean: 12500.8 },
+            { name: 'loan_term', type: 'numeric', nonNull: 995, nonNullRatio: '99.5%', min: 6, max: 360, mean: 60.2 },
+            { name: 'employment_status', type: 'categorical', nonNull: 985, nonNullRatio: '98.5%', min: '-', max: '-', mean: '-' }
+        ];
+
+        const mockData = Array.from({ length: 100 }, (_, i) => ({
+            id: i + 1,
+            age: Math.floor(Math.random() * 50) + 20,
+            income: Math.floor(Math.random() * 9000) + 1000,
+            credit_score: Math.floor(Math.random() * 550) + 300,
+            loan_amount: Math.floor(Math.random() * 49500) + 500,
+            loan_term: Math.floor(Math.random() * 300) + 6
+        }));
+
+        // 显示通知
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // 选择默认路径
+        function selectDefaultPath() {
+            document.getElementById('datasetPath').value = '20251204_Python-financial-risk-control-scorecard-model-and-data-analysis/german_credit.xlsx';
+            showToast('已设置默认路径', 'success');
+        }
+
+        // 浏览文件
+        function browseFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xlsx,.xls,.csv';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    document.getElementById('datasetPath').value = file.name;
+                    showToast(`已选择文件: ${file.name}`, 'success');
+                }
+            };
+            input.click();
+        }
+
+        // 验证路径
+        function validatePath() {
+            const path = document.getElementById('datasetPath').value;
+            if (!path) {
+                showToast('请输入数据集路径', 'error');
+                return;
+            }
+
+            // 模拟路径验证
+            isProcessing = true;
+            updateProgress(30, '正在验证路径...');
+
+            setTimeout(() => {
+                updateProgress(60, '正在加载元数据...');
+                
+                setTimeout(() => {
+                    updateProgress(100, '验证完成');
+                    
+                    // 更新元数据
+                    document.getElementById('datasetName').textContent = 'german_credit.xlsx';
+                    document.getElementById('fileSize').textContent = '31.9 KB';
+                    document.getElementById('recordCount').textContent = '1,000';
+                    document.getElementById('fieldCount').textContent = '20';
+                    document.getElementById('fileFormat').textContent = 'Excel';
+                    document.getElementById('missingRatio').textContent = '2.3%';
+
+                    // 更新字段表
+                    updateFieldsTable();
+                    
+                    // 加载模拟数据
+                    originalData = [...mockData];
+                    cleanedData = [...mockData];
+                    
+                    // 初始化图表
+                    initCharts();
+                    
+                    showToast('路径验证成功，数据集已加载', 'success');
+                    isProcessing = false;
+                    
+                    setTimeout(() => {
+                        updateProgress(0, '就绪');
+                    }, 1000);
+                }, 1000);
+            }, 1000);
+        }
+
+        // 更新字段表
+        function updateFieldsTable() {
+            const tbody = document.getElementById('fieldsTableBody');
+            tbody.innerHTML = mockFields.map(field => `
+                <tr>
+                    <td>${field.name}</td>
+                    <td>${field.type}</td>
+                    <td>${field.nonNull}</td>
+                    <td>${field.nonNullRatio}</td>
+                    <td>${field.min}</td>
+                    <td>${field.max}</td>
+                    <td>${field.mean}</td>
+                </tr>
+            `).join('');
+        }
+
+        // 切换清洗方法
+        function toggleMethod(method) {
+            const checkbox = document.getElementById(`${method}Checkbox`);
+            checkbox.checked = !checkbox.checked;
+            
+            const card = event.currentTarget;
+            if (checkbox.checked) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+        }
+
+        // 应用清洗
+        function applyCleaning() {
+            if (!originalData.length) {
+                showToast('请先加载数据集', 'error');
+                return;
+            }
+
+            if (isProcessing) {
+                showToast('正在处理中，请稍候', 'warning');
+                return;
+            }
+
+            isProcessing = true;
+            updateProgress(0, '正在应用数据清洗...');
+
+            // 保存当前状态到历史记录
+            saveToHistory();
+
+            // 模拟清洗过程
+            setTimeout(() => {
+                updateProgress(25, '正在处理缺失值...');
+                
+                setTimeout(() => {
+                    updateProgress(50, '正在处理异常值...');
+                    
+                    setTimeout(() => {
+                        updateProgress(75, '正在处理重复值...');
+                        
+                        setTimeout(() => {
+                            updateProgress(100, '清洗完成');
+                            
+                            // 模拟清洗后的数据
+                            cleanedData = originalData.map(row => ({
+                                ...row,
+                                age: row.age < 18 ? 18 : row.age,
+                                income: Math.max(row.income, 0),
+                                credit_score: Math.max(Math.min(row.credit_score, 850), 300)
+                            }));
+
+                            // 更新数据预览
+                            updateDataPreview();
+                            
+                            // 更新图表
+                            initCharts();
+                            
+                            showToast('数据清洗完成', 'success');
+                            isProcessing = false;
+                            
+                            setTimeout(() => {
+                                updateProgress(0, '就绪');
+                            }, 1000);
+                        }, 800);
+                    }, 800);
+                }, 800);
+            }, 800);
+        }
+
+        // 重置数据
+        function resetData() {
+            if (confirm('确定要重置数据吗？这将丢失所有清洗操作。')) {
+                cleanedData = [...originalData];
+                updateDataPreview();
+                initCharts();
+                showToast('数据已重置', 'success');
+            }
+        }
+
+        // 保存结果
+        function saveResults() {
+            if (!cleanedData.length) {
+                showToast('请先加载并清洗数据', 'error');
+                return;
+            }
+
+            isProcessing = true;
+            updateProgress(0, '正在保存结果...');
+
+            setTimeout(() => {
+                updateProgress(50, '正在写入文件...');
+                
+                setTimeout(() => {
+                    updateProgress(100, '保存完成');
+                    showToast('清洗结果已保存为 cleaned_german_credit.csv', 'success');
+                    isProcessing = false;
+                    
+                    setTimeout(() => {
+                        updateProgress(0, '就绪');
+                    }, 1000);
+                }, 1000);
+            }, 1000);
+        }
+
+        // 导出报告
+        function exportReport() {
+            showToast('报告导出功能开发中...', 'info');
+        }
+
+        // 撤销操作
+        function undoOperation() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                cleanedData = [...operationHistory[historyIndex]];
+                updateDataPreview();
+                initCharts();
+                showToast('操作已撤销', 'success');
+                updateHistoryButtons();
+            }
+        }
+
+        // 重做操作
+        function redoOperation() {
+            if (historyIndex < operationHistory.length - 1) {
+                historyIndex++;
+                cleanedData = [...operationHistory[historyIndex]];
+                updateDataPreview();
+                initCharts();
+                showToast('操作已重做', 'success');
+                updateHistoryButtons();
+            }
+        }
+
+        // 保存到历史记录
+        function saveToHistory() {
+            if (historyIndex < operationHistory.length - 1) {
+                operationHistory = operationHistory.slice(0, historyIndex + 1);
+            }
+            operationHistory.push([...cleanedData]);
+            historyIndex++;
+            updateHistoryButtons();
+        }
+
+        // 更新历史按钮状态
+        function updateHistoryButtons() {
+            document.querySelector('button:contains("撤销")').disabled = historyIndex <= 0;
+            document.querySelector('button:contains("重做")').disabled = historyIndex >= operationHistory.length - 1;
+        }
+
+        // 更新进度
+        function updateProgress(percent, text) {
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressText').textContent = text;
+        }
+
+        // 刷新元数据
+        function refreshMetadata() {
+            validatePath();
+        }
+
+        // 更新数据预览
+        function updateDataPreview() {
+            const tableBody = document.getElementById('dataTableBody');
+            const data = currentView === 'original' ? originalData : cleanedData;
+            
+            if (data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">暂无数据</td></tr>';
+                return;
+            }
+
+            // 分页处理
+            const pageSize = 10;
+            totalPages = Math.ceil(data.length / pageSize);
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pageData = data.slice(start, end);
+
+            tableBody.innerHTML = pageData.map(row => `
+                <tr>
+                    <td>${row.id}</td>
+                    <td>${row.age}</td>
+                    <td>${row.income.toLocaleString()}</td>
+                    <td>${row.credit_score}</td>
+                    <td>${row.loan_amount.toLocaleString()}</td>
+                    <td>${row.loan_term}</td>
+                </tr>
+            `).join('');
+
+            updatePagination();
+        }
+
+        // 更新分页
+        function updatePagination() {
+            const pagination = document.getElementById('pagination');
+            let paginationHTML = '<button onclick="previousPage()" ' + (currentPage === 1 ? 'disabled' : '') + '>上一页</button>';
+            
+            for (let i = 1; i <= totalPages; i++) {
+                paginationHTML += `<button onclick="goToPage(${i})" class="${i === currentPage ? 'active' : ''}">${i}</button>`;
+            }
+            
+            paginationHTML += '<button onclick="nextPage()" ' + (currentPage === totalPages ? 'disabled' : '') + '>下一页</button>';
+            pagination.innerHTML = paginationHTML;
+        }
+
+        // 上一页
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                updateDataPreview();
+            }
+        }
+
+        // 下一页
+        function nextPage() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                updateDataPreview();
+            }
+        }
+
+        // 跳转到指定页
+        function goToPage(page) {
+            currentPage = page;
+            updateDataPreview();
+        }
+
+        // 筛选数据
+        function filterData() {
+            const filter = event.target.value.toLowerCase();
+            // 筛选逻辑待实现
+            showToast('筛选功能开发中...', 'info');
+        }
+
+        // 排序数据
+        function sortData() {
+            const sortType = event.target.value;
+            // 排序逻辑待实现
+            showToast('排序功能开发中...', 'info');
+        }
+
+        // 改变视图
+        function changeView() {
+            currentView = event.target.value;
+            updateDataPreview();
+            showToast(`已切换到${currentView === 'original' ? '原始数据' : currentView === 'cleaned' ? '清洗后数据' : '对比视图'}`, 'success');
+        }
+
+        // 初始化图表
+        function initCharts() {
+            // 直方图
+            const histogramCtx = document.getElementById('histogramChart').getContext('2d');
+            new Chart(histogramCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['20-30', '31-40', '41-50', '51-60', '61-70', '71+'],
+                    datasets: [
+                        {
+                            label: '原始数据',
+                            data: [25, 35, 20, 12, 6, 2],
+                            backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '清洗后数据',
+                            data: [25, 35, 20, 12, 6, 2],
+                            backgroundColor: 'rgba(16, 185, 129, 0.5)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: '年龄分布' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // 缺失值分布
+            const missingCtx = document.getElementById('missingValuesChart').getContext('2d');
+            new Chart(missingCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['完整数据', '含缺失值数据'],
+                    datasets: [{
+                        data: [977, 23],
+                        backgroundColor: ['rgba(16, 185, 129, 0.8)', 'rgba(239, 68, 68, 0.8)'],
+                        borderColor: ['rgba(16, 185, 129, 1)', 'rgba(239, 68, 68, 1)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: '缺失值分布' }
+                    }
+                }
+            });
+
+            // 数据质量对比
+            const qualityCtx = document.getElementById('qualityComparisonChart').getContext('2d');
+            new Chart(qualityCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['完整性', '准确性', '一致性', '及时性', '有效性'],
+                    datasets: [
+                        {
+                            label: '原始数据',
+                            data: [75, 80, 85, 90, 82],
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            borderColor: 'rgba(59, 130, 246, 0.8)',
+                            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(59, 130, 246, 1)'
+                        },
+                        {
+                            label: '清洗后数据',
+                            data: [98, 95, 96, 90, 94],
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            borderColor: 'rgba(16, 185, 129, 0.8)',
+                            pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(16, 185, 129, 1)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: '数据质量对比' }
+                    }
+                }
+            });
+
+            // 相关性图表
+            const correlationCtx = document.getElementById('correlationChart').getContext('2d');
+            new Chart(correlationCtx, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: '收入与信用分数',
+                        data: Array.from({ length: 50 }, () => ({
+                            x: Math.random() * 9000 + 1000,
+                            y: Math.random() * 550 + 300,
+                            r: Math.random() * 10 + 5
+                        })),
+                        backgroundColor: 'rgba(59, 130, 246, 0.6)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: '收入与信用分数相关性' }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: '收入' } },
+                        y: { title: { display: true, text: '信用分数' } }
+                    }
+                }
+            });
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化图表容器
+            initCharts();
+            
+            // 为方法卡片添加点击事件
+            document.querySelectorAll('.method-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const method = this.querySelector('input[type="checkbox"]').id.replace('Checkbox', '');
+                    toggleMethod(method);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
