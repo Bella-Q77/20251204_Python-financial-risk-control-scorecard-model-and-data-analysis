@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据处理流程可视化与交互操作</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        .module {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .module h2 {
+            margin-bottom: 15px;
+            color: #34495e;
+            font-size: 1.2em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input[type="text"],
+        .form-group select,
+        .form-group input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group input[type="checkbox"] {
+            margin-right: 5px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        .btn:active {
+            background-color: #1f6dad;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn-secondary:active {
+            background-color: #6a7b7c;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-danger:active {
+            background-color: #a93226;
+        }
+
+        .data-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-card {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .info-card h3 {
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .info-card p {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .data-table tr:hover {
+            background-color: #f5f7fa;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .pagination button {
+            padding: 5px 10px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+            cursor: pointer;
+        }
+
+        .pagination button:hover {
+            background-color: #f8f9fa;
+        }
+
+        .pagination button.active {
+            background-color: #3498db;
+            color: #fff;
+            border-color: #3498db;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #3498db;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .status-message.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-message.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .filter-sort {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .filter-sort .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .data-preview-tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .data-preview-tabs button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #f8f9fa;
+            color: #333;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .data-preview-tabs button.active {
+            background-color: #3498db;
+            color: #fff;
+        }
+
+        .data-preview-content {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 0 4px 4px 4px;
+        }
+
+        @media (max-width: 768px) {
+            .filter-sort {
+                flex-direction: column;
+            }
+
+            .filter-sort .form-group {
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>数据处理流程可视化与交互操作</h1>
+
+        <!-- 数据集路径选择模块 -->
+        <div class="module">
+            <h2>1. 数据集路径选择</h2>
+            <div class="form-group">
+                <label for="dataset-path">数据集路径：</label>
+                <input type="text" id="dataset-path" placeholder="请输入数据集路径或上传文件">
+            </div>
+            <div class="form-group">
+                <label for="default-path">默认路径：</label>
+                <select id="default-path">
+                    <option value="german_credit.xlsx">german_credit.xlsx</option>
+                    <option value="processed_german_credit.xlsx">processed_german_credit.xlsx</option>
+                </select>
+                <button class="btn btn-secondary" onclick="setDefaultPath()">使用默认路径</button>
+            </div>
+            <div class="form-group">
+                <label for="file-upload">上传文件：</label>
+                <input type="file" id="file-upload" accept=".xlsx,.csv">
+            </div>
+            <button class="btn" onclick="validatePath()">验证路径</button>
+        </div>
+
+        <!-- 数据集基本信息展示区域 -->
+        <div class="module">
+            <h2>2. 数据集基本信息</h2>
+            <div id="data-info" class="data-info">
+                <div class="info-card">
+                    <h3>数据集名称</h3>
+                    <p id="dataset-name">-</p>
+                </div>
+                <div class="info-card">
+                    <h3>数据集大小</h3>
+                    <p id="dataset-size">-</p>
+                </div>
+                <div class="info-card">
+                    <h3>数据集格式</h3>
+                    <p id="dataset-format">-</p>
+                </div>
+                <div class="info-card">
+                    <h3>记录数</h3>
+                    <p id="record-count">-</p>
+                </div>
+                <div class="info-card">
+                    <h3>字段数</h3>
+                    <p id="field-count">-</p>
+                </div>
+            </div>
+            <h3>字段信息</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>字段名称</th>
+                        <th>类型</th>
+                        <th>非空值比例</th>
+                        <th>最大值</th>
+                        <th>最小值</th>
+                        <th>平均值</th>
+                    </tr>
+                </thead>
+                <tbody id="field-info"></tbody>
+            </table>
+        </div>
+
+        <!-- 数据清洗方法选择组件 -->
+        <div class="module">
+            <h2>3. 数据清洗方法选择</h2>
+            <div class="form-group">
+                <label><input type="checkbox" id="handle-missing-values"> 处理缺失值</label>
+            </div>
+            <div class="form-group" id="missing-value-methods" style="display: none;">
+                <label for="missing-value-method">缺失值处理方法：</label>
+                <select id="missing-value-method">
+                    <option value="mean">均值填充</option>
+                    <option value="median">中位数填充</option>
+                    <option value="mode">众数填充</option>
+                    <option value="constant">常数填充</option>
+                    <option value="drop">删除缺失值</option>
+                </select>
+            </div>
+            <div class="form-group" id="missing-value-constant" style="display: none;">
+                <label for="missing-value-constant-value">填充常数：</label>
+                <input type="number" id="missing-value-constant-value" value="0">
+            </div>
+            <div class="form-group">
+                <label><input type="checkbox" id="handle-outliers"> 处理异常值</label>
+            </div>
+            <div class="form-group" id="outlier-methods" style="display: none;">
+                <label for="outlier-method">异常值处理方法：</label>
+                <select id="outlier-method">
+                    <option value="winsorization">Winsorization截断</option>
+                    <option value="drop">删除异常值</option>
+                    <option value="mean">均值替换</option>
+                    <option value="median">中位数替换</option>
+                </select>
+            </div>
+            <div class="form-group" id="outlier-threshold" style="display: none;">
+                <label for="outlier-threshold-value">异常值阈值（IQR倍数）：</label>
+                <input type="number" id="outlier-threshold-value" value="1.5" step="0.1">
+            </div>
+            <div class="form-group">
+                <label><input type="checkbox" id="handle-duplicates"> 处理重复值</label>
+            </div>
+            <div class="form-group" id="duplicate-methods" style="display: none;">
+                <label for="duplicate-method">重复值处理方法：</label>
+                <select id="duplicate-method">
+                    <option value="drop">删除重复值</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 交互式数据预览功能 -->
+        <div class="module">
+            <h2>4. 交互式数据预览</h2>
+            <div class="data-preview-tabs">
+                <button class="active" onclick="switchPreviewTab('original')">原始数据</button>
+                <button onclick="switchPreviewTab('cleaned')">清洗后数据</button>
+            </div>
+            <div class="data-preview-content" id="original-data-preview">
+                <div class="filter-sort">
+                    <div class="form-group">
+                        <label for="original-filter-field">筛选字段：</label>
+                        <select id="original-filter-field">
+                            <option value="">所有字段</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="original-filter-value">筛选值：</label>
+                        <input type="text" id="original-filter-value" placeholder="请输入筛选值">
+                    </div>
+                    <div class="form-group">
+                        <label for="original-sort-field">排序字段：</label>
+                        <select id="original-sort-field">
+                            <option value="">不排序</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="original-sort-order">排序方式：</label>
+                        <select id="original-sort-order">
+                            <option value="asc">升序</option>
+                            <option value="desc">降序</option>
+                        </select>
+                    </div>
+                </div>
+                <table class="data-table">
+                    <thead id="original-data-header"></thead>
+                    <tbody id="original-data-body"></tbody>
+                </table>
+                <div class="pagination" id="original-pagination"></div>
+                <div class="chart-container" id="original-chart"></div>
+            </div>
+            <div class="data-preview-content" id="cleaned-data-preview" style="display: none;">
+                <div class="filter-sort">
+                    <div class="form-group">
+                        <label for="cleaned-filter-field">筛选字段：</label>
+                        <select id="cleaned-filter-field">
+                            <option value="">所有字段</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cleaned-filter-value">筛选值：</label>
+                        <input type="text" id="cleaned-filter-value" placeholder="请输入筛选值">
+                    </div>
+                    <div class="form-group">
+                        <label for="cleaned-sort-field">排序字段：</label>
+                        <select id="cleaned-sort-field">
+                            <option value="">不排序</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cleaned-sort-order">排序方式：</label>
+                        <select id="cleaned-sort-order">
+                            <option value="asc">升序</option>
+                            <option value="desc">降序</option>
+                        </select>
+                    </div>
+                </div>
+                <table class="data-table">
+                    <thead id="cleaned-data-header"></thead>
+                    <tbody id="cleaned-data-body"></tbody>
+                </table>
+                <div class="pagination" id="cleaned-pagination"></div>
+                <div class="chart-container" id="cleaned-chart"></div>
+            </div>
+        </div>
+
+        <!-- 操作流程控制 -->
+        <div class="module">
+            <h2>5. 操作流程控制</h2>
+            <button class="btn" onclick="applyCleaning()">应用清洗</button>
+            <button class="btn btn-secondary" onclick="reset()">重置</button>
+            <button class="btn btn-secondary" onclick="saveResult()">保存结果</button>
+            <button class="btn btn-secondary" onclick="undo()">撤销</button>
+            <button class="btn btn-secondary" onclick="redo()">重做</button>
+            <div class="progress-bar">
+                <div class="progress-bar-fill" id="progress-bar-fill"></div>
+            </div>
+            <div id="status-message"></div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟数据集数据
+        const mockData = {
+            name: 'german_credit.xlsx',
+            size: '1.2 MB',
+            format: 'xlsx',
+            recordCount: 1000,
+            fieldCount: 21,
+            fields: [
+                { name: 'age', type: 'int64', nonNullRatio: 1.0, max: 75, min: 19, mean: 35.5 },
+                { name: 'sex', type: 'object', nonNullRatio: 1.0, max: null, min: null, mean: null },
+                { name: 'job', type: 'int64', nonNullRatio: 1.0, max: 3, min: 0, mean: 1.9 },
+                { name: 'housing', type: 'object', nonNullRatio: 1.0, max: null, min: null, mean: null },
+                { name: 'saving_accounts', type: 'object', nonNullRatio: 0.7, max: null, min: null, mean: null },
+                { name: 'checking_account', type: 'object', nonNullRatio: 0.6, max: null, min: null, mean: null },
+                { name: 'credit_amount', type: 'int64', nonNullRatio: 1.0, max: 18424, min: 250, mean: 3271.3 },
+                { name: 'duration', type: 'int64', nonNullRatio: 1.0, max: 72, min: 4, mean: 20.9 },
+                { name: 'purpose', type: 'object', nonNullRatio: 1.0, max: null, min: null, mean: null },
+                { name: 'target', type: 'int64', nonNullRatio: 1.0, max: 1, min: 0, mean: 0.3 }
+            ],
+            data: []
+        };
+
+        // 生成模拟数据
+        for (let i = 0; i < 1000; i++) {
+            const row = {};
+            mockData.fields.forEach(field => {
+                if (field.type === 'int64') {
+                    row[field.name] = Math.floor(Math.random() * (field.max - field.min + 1)) + field.min;
+                } else {
+                    row[field.name] = field.name === 'sex' ? (Math.random() > 0.5 ? 'male' : 'female') :
+                                     field.name === 'housing' ? (Math.random() > 0.5 ? 'own' : 'rent') :
+                                     field.name === 'saving_accounts' ? (Math.random() > 0.3 ? 'little' : 'moderate') :
+                                     field.name === 'checking_account' ? (Math.random() > 0.4 ? 'little' : 'moderate') :
+                                     'car';
+                }
+            });
+            mockData.data.push(row);
+        }
+
+        // 当前预览页
+        let currentOriginalPage = 1;
+        let currentCleanedPage = 1;
+        const pageSize = 10;
+
+        // 数据集路径选择模块
+        function setDefaultPath() {
+            const defaultPath = document.getElementById('default-path').value;
+            document.getElementById('dataset-path').value = defaultPath;
+        }
+
+        function validatePath() {
+            const path = document.getElementById('dataset-path').value;
+            if (!path) {
+                showStatus('请输入数据集路径', 'error');
+                return;
+            }
+            // 模拟路径验证
+            showStatus('路径验证成功', 'success');
+            loadDatasetInfo();
+        }
+
+        // 数据集基本信息展示区域
+        function loadDatasetInfo() {
+            document.getElementById('dataset-name').textContent = mockData.name;
+            document.getElementById('dataset-size').textContent = mockData.size;
+            document.getElementById('dataset-format').textContent = mockData.format;
+            document.getElementById('record-count').textContent = mockData.recordCount;
+            document.getElementById('field-count').textContent = mockData.fieldCount;
+
+            const fieldInfoBody = document.getElementById('field-info');
+            fieldInfoBody.innerHTML = '';
+            mockData.fields.forEach(field => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${field.name}</td>
+                    <td>${field.type}</td>
+                    <td>${(field.nonNullRatio * 100).toFixed(2)}%</td>
+                    <td>${field.max !== null ? field.max : '-'}</td>
+                    <td>${field.min !== null ? field.min : '-'}</td>
+                    <td>${field.mean !== null ? field.mean.toFixed(2) : '-'}</td>
+                `;
+                fieldInfoBody.appendChild(row);
+            });
+
+            // 初始化数据预览
+            initDataPreview();
+        }
+
+        // 数据清洗方法选择组件
+        document.getElementById('handle-missing-values').addEventListener('change', function() {
+            document.getElementById('missing-value-methods').style.display = this.checked ? 'block' : 'none';
+            if (this.checked && document.getElementById('missing-value-method').value === 'constant') {
+                document.getElementById('missing-value-constant').style.display = 'block';
+            } else {
+                document.getElementById('missing-value-constant').style.display = 'none';
+            }
+        });
+
+        document.getElementById('missing-value-method').addEventListener('change', function() {
+            document.getElementById('missing-value-constant').style.display = this.value === 'constant' ? 'block' : 'none';
+        });
+
+        document.getElementById('handle-outliers').addEventListener('change', function() {
+            document.getElementById('outlier-methods').style.display = this.checked ? 'block' : 'none';
+            if (this.checked) {
+                document.getElementById('outlier-threshold').style.display = 'block';
+            } else {
+                document.getElementById('outlier-threshold').style.display = 'none';
+            }
+        });
+
+        document.getElementById('handle-duplicates').addEventListener('change', function() {
+            document.getElementById('duplicate-methods').style.display = this.checked ? 'block' : 'none';
+        });
+
+        // 交互式数据预览功能
+        function initDataPreview() {
+            // 初始化原始数据预览
+            const originalFilterField = document.getElementById('original-filter-field');
+            const originalSortField = document.getElementById('original-sort-field');
+            originalFilterField.innerHTML = '<option value="">所有字段</option>';
+            originalSortField.innerHTML = '<option value="">不排序</option>';
+            mockData.fields.forEach(field => {
+                const option1 = document.createElement('option');
+                option1.value = field.name;
+                option1.textContent = field.name;
+                originalFilterField.appendChild(option1);
+
+                const option2 = document.createElement('option');
+                option2.value = field.name;
+                option2.textContent = field.name;
+                originalSortField.appendChild(option2);
+            });
+
+            // 初始化清洗后数据预览
+            const cleanedFilterField = document.getElementById('cleaned-filter-field');
+            const cleanedSortField = document.getElementById('cleaned-sort-field');
+            cleanedFilterField.innerHTML = '<option value="">所有字段</option>';
+            cleanedSortField.innerHTML = '<option value="">不排序</option>';
+            mockData.fields.forEach(field => {
+                const option1 = document.createElement('option');
+                option1.value = field.name;
+                option1.textContent = field.name;
+                cleanedFilterField.appendChild(option1);
+
+                const option2 = document.createElement('option');
+                option2.value = field.name;
+                option2.textContent = field.name;
+                cleanedSortField.appendChild(option2);
+            });
+
+            // 加载原始数据
+            loadOriginalData();
+        }
+
+        function switchPreviewTab(tab) {
+            const originalTab = document.querySelector('.data-preview-tabs button:nth-child(1)');
+            const cleanedTab = document.querySelector('.data-preview-tabs button:nth-child(2)');
+            const originalContent = document.getElementById('original-data-preview');
+            const cleanedContent = document.getElementById('cleaned-data-preview');
+
+            if (tab === 'original') {
+                originalTab.classList.add('active');
+                cleanedTab.classList.remove('active');
+                originalContent.style.display = 'block';
+                cleanedContent.style.display = 'none';
+            } else {
+                originalTab.classList.remove('active');
+                cleanedTab.classList.add('active');
+                originalContent.style.display = 'none';
+                cleanedContent.style.display = 'block';
+            }
+        }
+
+        function loadOriginalData() {
+            const filterField = document.getElementById('original-filter-field').value;
+            const filterValue = document.getElementById('original-filter-value').value;
+            const sortField = document.getElementById('original-sort-field').value;
+            const sortOrder = document.getElementById('original-sort-order').value;
+
+            let filteredData = [...mockData.data];
+
+            // 筛选数据
+            if (filterField && filterValue) {
+                filteredData = filteredData.filter(row => {
+                    const value = row[filterField];
+                    return value && value.toString().toLowerCase().includes(filterValue.toLowerCase());
+                });
+            }
+
+            // 排序数据
+            if (sortField) {
+                filteredData.sort((a, b) => {
+                    const valueA = a[sortField];
+                    const valueB = b[sortField];
+                    if (typeof valueA === 'number' && typeof valueB === 'number') {
+                        return sortOrder === 'asc' ? valueA - valueB : valueB - valueA;
+                    } else {
+                        return sortOrder === 'asc' ? valueA.toString().localeCompare(valueB.toString()) : valueB.toString().localeCompare(valueA.toString());
+                    }
+                });
+            }
+
+            // 分页
+            const startIndex = (currentOriginalPage - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            const pageData = filteredData.slice(startIndex, endIndex);
+
+            // 渲染表格
+            const originalDataHeader = document.getElementById('original-data-header');
+            const originalDataBody = document.getElementById('original-data-body');
+            originalDataHeader.innerHTML = '';
+            originalDataBody.innerHTML = '';
+
+            // 渲染表头
+            const headerRow = document.createElement('tr');
+            mockData.fields.forEach(field => {
+                const th = document.createElement('th');
+                th.textContent = field.name;
+                headerRow.appendChild(th);
+            });
+            originalDataHeader.appendChild(headerRow);
+
+            // 渲染数据行
+            pageData.forEach(row => {
+                const dataRow = document.createElement('tr');
+                mockData.fields.forEach(field => {
+                    const td = document.createElement('td');
+                    td.textContent = row[field.name];
+                    dataRow.appendChild(td);
+                });
+                originalDataBody.appendChild(dataRow);
+            });
+
+            // 渲染分页
+            renderPagination('original', filteredData.length);
+
+            // 渲染图表
+            renderChart('original', filteredData);
+        }
+
+        function renderPagination(tab, totalCount) {
+            const pagination = document.getElementById(`${tab}-pagination`);
+            const totalPages = Math.ceil(totalCount / pageSize);
+            pagination.innerHTML = '';
+
+            // 上一页按钮
+            const prevButton = document.createElement('button');
+            prevButton.textContent = '上一页';
+            prevButton.disabled = tab === 'original' ? currentOriginalPage === 1 : currentCleanedPage === 1;
+            prevButton.addEventListener('click', () => {
+                if (tab === 'original') {
+                    currentOriginalPage--;
+                    loadOriginalData();
+                } else {
+                    currentCleanedPage--;
+                    loadCleanedData();
+                }
+            });
+            pagination.appendChild(prevButton);
+
+            // 页码按钮
+            for (let i = 1; i <= totalPages; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.classList.add(tab === 'original' ? (currentOriginalPage === i ? 'active' : '') : (currentCleanedPage === i ? 'active' : ''));
+                pageButton.addEventListener('click', () => {
+                    if (tab === 'original') {
+                        currentOriginalPage = i;
+                        loadOriginalData();
+                    } else {
+                        currentCleanedPage = i;
+                        loadCleanedData();
+                    }
+                });
+                pagination.appendChild(pageButton);
+            }
+
+            // 下一页按钮
+            const nextButton = document.createElement('button');
+            nextButton.textContent = '下一页';
+            nextButton.disabled = tab === 'original' ? currentOriginalPage === totalPages : currentCleanedPage === totalPages;
+            nextButton.addEventListener('click', () => {
+                if (tab === 'original') {
+                    currentOriginalPage++;
+                    loadOriginalData();
+                } else {
+                    currentCleanedPage++;
+                    loadCleanedData();
+                }
+            });
+            pagination.appendChild(nextButton);
+        }
+
+        function renderChart(tab, data) {
+            // 简单的图表渲染（这里只是示例，实际项目中可以使用Chart.js等库）
+            const chartContainer = document.getElementById(`${tab}-chart`);
+            chartContainer.innerHTML = `<p>图表功能开发中...</p>`;
+        }
+
+        // 操作流程控制
+        function applyCleaning() {
+            showStatus('正在应用数据清洗...', 'info');
+            updateProgress(0);
+
+            // 模拟数据清洗过程
+            setTimeout(() => {
+                updateProgress(30);
+            }, 500);
+
+            setTimeout(() => {
+                updateProgress(60);
+            }, 1000);
+
+            setTimeout(() => {
+                updateProgress(100);
+                showStatus('数据清洗完成', 'success');
+                // 加载清洗后数据
+                loadCleanedData();
+            }, 1500);
+        }
+
+        function reset() {
+            // 重置所有表单和数据
+            document.getElementById('dataset-path').value = '';
+            document.getElementById('handle-missing-values').checked = false;
+            document.getElementById('missing-value-methods').style.display = 'none';
+            document.getElementById('missing-value-constant').style.display = 'none';
+            document.getElementById('handle-outliers').checked = false;
+            document.getElementById('outlier-methods').style.display = 'none';
+            document.getElementById('outlier-threshold').style.display = 'none';
+            document.getElementById('handle-duplicates').checked = false;
+            document.getElementById('duplicate-methods').style.display = 'none';
+            document.getElementById('progress-bar-fill').style.width = '0%';
+            showStatus('已重置', 'info');
+        }
+
+        function saveResult() {
+            showStatus('正在保存结果...', 'info');
+            setTimeout(() => {
+                showStatus('结果保存成功', 'success');
+            }, 1000);
+        }
+
+        function undo() {
+            showStatus('撤销操作', 'info');
+        }
+
+        function redo() {
+            showStatus('重做操作', 'info');
+        }
+
+        function updateProgress(progress) {
+            document.getElementById('progress-bar-fill').style.width = `${progress}%`;
+        }
+
+        function showStatus(message, type) {
+            const statusMessage = document.getElementById('status-message');
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message ${type}`;
+            setTimeout(() => {
+                statusMessage.textContent = '';
+                statusMessage.className = 'status-message';
+            }, 3000);
+        }
+
+        // 加载清洗后数据（模拟）
+        function loadCleanedData() {
+            // 这里只是模拟，实际项目中应该根据用户选择的清洗方法处理数据
+            const cleanedData = [...mockData.data];
+
+            const cleanedDataHeader = document.getElementById('cleaned-data-header');
+            const cleanedDataBody = document.getElementById('cleaned-data-body');
+            cleanedDataHeader.innerHTML = '';
+            cleanedDataBody.innerHTML = '';
+
+            // 渲染表头
+            const headerRow = document.createElement('tr');
+            mockData.fields.forEach(field => {
+                const th = document.createElement('th');
+                th.textContent = field.name;
+                headerRow.appendChild(th);
+            });
+            cleanedDataHeader.appendChild(headerRow);
+
+            // 渲染数据行
+            cleanedData.slice(0, pageSize).forEach(row => {
+                const dataRow = document.createElement('tr');
+                mockData.fields.forEach(field => {
+                    const td = document.createElement('td');
+                    td.textContent = row[field.name];
+                    dataRow.appendChild(td);
+                });
+                cleanedDataBody.appendChild(dataRow);
+            });
+
+            // 渲染分页
+            renderPagination('cleaned', cleanedData.length);
+
+            // 渲染图表
+            renderChart('cleaned', cleanedData);
+        }
+
+        // 事件监听
+        document.getElementById('original-filter-field').addEventListener('change', loadOriginalData);
+        document.getElementById('original-filter-value').addEventListener('input', loadOriginalData);
+        document.getElementById('original-sort-field').addEventListener('change', loadOriginalData);
+        document.getElementById('original-sort-order').addEventListener('change', loadOriginalData);
+
+        document.getElementById('cleaned-filter-field').addEventListener('change', loadCleanedData);
+        document.getElementById('cleaned-filter-value').addEventListener('input', loadCleanedData);
+        document.getElementById('cleaned-sort-field').addEventListener('change', loadCleanedData);
+        document.getElementById('cleaned-sort-order').addEventListener('change', loadCleanedData);
+    </script>
+</body>
+</html>
